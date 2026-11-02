@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_messages">संदेश</string>
+    <string name="channel_scam">धोखाधड़ी अलर्ट</string>
+    <string name="channel_reports">रिपोर्ट</string>
+    <string name="channel_background">पृष्ठभूमि जाँच</string>
+    <string name="scanning">संदेश की जाँच हो रही है…</string>
+    <string name="reply">जवाब दें</string>
+    <string name="mark_read">पढ़ा हुआ चिह्नित करें</string>
+    <string name="scam_alert_title">⚠ %1$s से धोखाधड़ी संदेश</string>
+    <string name="suspicious_alert_title">%1$s से संदिग्ध संदेश</string>
+    <string name="consent_server">ScamShield सर्वर से लिंक और भेजने वाले की जाँच करें। केवल भेजने वाला, लिंक और चेतावनी के प्रकार भेजे जाते हैं — आपके संदेश का पाठ नहीं।</string>
+    <string name="consent_auto_report">जब किसी संदेश की धोखाधड़ी के रूप में पुष्टि हो, तो उसे, उसी भेजने वाले के अन्य संदेशों और विश्लेषण को साइबर अपराध अधिकारियों और जिस संस्था की नकल की गई है, उसे अपने-आप भेजें। आपके अन्य संदेश कभी नहीं भेजे जाते।</string>
+    <string name="consent_share_text">बेहतर जाँच के लिए आने वाले संदेशों का पूरा पाठ भी भेजें।</string>
+    <string name="consent_1909">धोखाधड़ी SMS को मेरी SIM से TRAI 1909 पर अपने-आप आगे भेजें (हर बार एक SMS लगता है)।</string>
+    <string name="disclaimer">स्वचालित जाँच गलत हो सकती है। चेतावनी कोई कानूनी निर्णय नहीं है।</string>
+</resources>

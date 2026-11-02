@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+backend/var/
+backend/*.db
+demo-out/
+deploy/.env
+deploy/backups/
+.local-android-sdk/
+*.log
+*.err
+*.db
+rite the password literally#
+*.apk

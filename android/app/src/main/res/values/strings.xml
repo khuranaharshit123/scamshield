@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScamShield SMS</string>
+    <string name="channel_messages">Messages</string>
+    <string name="channel_scam">Scam alerts</string>
+    <string name="channel_reports">Reports</string>
+    <string name="channel_background">Background checks</string>
+    <string name="scanning">Checking message…</string>
+    <string name="reply">Reply</string>
+    <string name="mark_read">Mark as read</string>
+    <string name="scam_alert_title">⚠ Scam detected from %1$s</string>
+    <string name="suspicious_alert_title">Suspicious message from %1$s</string>
+    <string name="consent_server">Check links and senders with ScamShield servers. Only the sender, the links and the kind of warning signs are sent — not your message text.</string>
+    <string name="consent_auto_report">When a message is confirmed as a scam, automatically send it, the other messages from that same sender, and the analysis to cyber-crime authorities and the organisation being imitated. Your other messages are never sent.</string>
+    <string name="consent_share_text">Also send the full text of incoming messages for better checks.</string>
+    <string name="consent_1909">Auto-forward scam SMS to TRAI 1909 from my SIM (uses one SMS each time).</string>
+    <string name="disclaimer">Automated checks can be wrong. A warning is not a legal finding.</string>
+</resources>
