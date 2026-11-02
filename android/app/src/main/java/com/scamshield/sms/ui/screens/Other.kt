@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.scamshield.sms.BuildConfig
 import com.scamshield.sms.R
 import com.scamshield.sms.container
+import com.scamshield.sms.core.network.normalizeServerUrl
 import com.scamshield.sms.core.network.syncRegistration
 import com.scamshield.sms.ui.VerdictChip
 import com.scamshield.sms.work.BlocklistSyncWorker
@@ -136,7 +137,22 @@ fun SettingsScreen(onBack: () -> Unit) {
             StatePicker(settings.stateCode) { code -> save { it.copy(stateCode = code) } }
             HorizontalDivider()
             Text("Server", style = MaterialTheme.typography.titleMedium)
-            Text(BuildConfig.API_BASE_URL, style = MaterialTheme.typography.bodySmall)
+            var serverInput by remember(settings.serverUrl) { mutableStateOf(settings.serverUrl ?: "") }
+            OutlinedTextField(serverInput, { serverInput = it }, label = { Text("Server address") },
+                placeholder = { Text("192.168.1.5:8000") },
+                supportingText = { Text("Phone and PC on the same Wi-Fi. Empty = default (${BuildConfig.API_BASE_URL})") },
+                singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth())
+            Button(modifier = Modifier.fillMaxWidth(), onClick = {
+                val raw = serverInput.trim()
+                val url = if (raw.isEmpty()) null else normalizeServerUrl(raw)
+                if (raw.isNotEmpty() && url == null) { message = "Invalid server address"; return@Button }
+                scope.launch {
+                    // A device token is only valid on the server that issued it.
+                    if (url != settings.serverUrl) c.settings.update { it.copy(serverUrl = url, deviceToken = null) }
+                    message = syncRegistration(c) ?: "Server saved"
+                }
+            }) { Text("Save server") }
             Text(if (settings.deviceToken != null) "Connected" else "Not connected — on-device checks only",
                 style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

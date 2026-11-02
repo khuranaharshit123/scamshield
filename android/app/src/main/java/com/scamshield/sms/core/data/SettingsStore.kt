@@ -25,6 +25,8 @@ data class AppSettings(
     val reporterName: String? = null,
     val reporterPhone: String? = null,
     val blocklistVersion: String? = null,
+    /** User-entered server (e.g. http://192.168.1.5:8000/); null = use the build-time default. */
+    val serverUrl: String? = null,
 )
 
 class SettingsStore(private val context: Context) {
@@ -40,6 +42,7 @@ class SettingsStore(private val context: Context) {
         val name = stringPreferencesKey("reporter_name")
         val phone = stringPreferencesKey("reporter_phone")
         val blVersion = stringPreferencesKey("blocklist_version")
+        val serverUrl = stringPreferencesKey("server_url")
     }
 
     val flow: Flow<AppSettings> = context.dataStore.data.map { it.toSettings() }
@@ -58,6 +61,7 @@ class SettingsStore(private val context: Context) {
         reporterName = this[K.name],
         reporterPhone = this[K.phone],
         blocklistVersion = this[K.blVersion],
+        serverUrl = this[K.serverUrl],
     )
 
     suspend fun update(block: (AppSettings) -> AppSettings) {
@@ -74,6 +78,7 @@ class SettingsStore(private val context: Context) {
             s.reporterName?.let { p[K.name] = it } ?: p.remove(K.name)
             s.reporterPhone?.let { p[K.phone] = it } ?: p.remove(K.phone)
             s.blocklistVersion?.let { p[K.blVersion] = it } ?: p.remove(K.blVersion)
+            s.serverUrl?.let { p[K.serverUrl] = it } ?: p.remove(K.serverUrl)
         }
     }
 }
