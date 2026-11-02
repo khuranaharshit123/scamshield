@@ -11,9 +11,9 @@ shared/        rules.yaml + brands.yaml — the ONLY place scam keywords, brands
 backend/       FastAPI API, scoring, deep URL analysis, auto-reports, threat feeds (Python 3.12)
 sandbox/       Isolated Playwright browser service that opens links (Docker)
 android/       Kotlin + Jetpack Compose default SMS app
-deploy/        docker-compose.yml, .env.example, Nginx snippet for the VPS's existing proxy
+deploy/        docker-compose.yml, .env.example, Nginx snippet (prepared for later, not in use)
 tools/         export_rules.py · parity/ (Kotlin ↔ Python check) · demo_report.py
-.github/       CI: tests, image build, deploy to VPS, APK build
+.github/       CI: tests, image build, APK build (VPS deploy step not active yet)
 ```
 
 ## Run the backend locally
@@ -43,8 +43,8 @@ cd sandbox && uvicorn server:app --port 8100
 1. Open `android/` in Android Studio (Ladybug or newer). If prompted, accept the AGP upgrade.
 2. `android/local.properties`:
    ```
-   scamshield.apiBaseUrl=https://api.yourdomain.in/     # emulator + local backend: http://10.0.2.2:8000/
-   scamshield.apiKey=<API_KEY from deploy/.env>
+   scamshield.apiBaseUrl=http://10.0.2.2:8000/     # emulator -> local backend; real phone: http://<your-PC-LAN-IP>:8000/
+   scamshield.apiKey=<API_KEY from your local backend env>
    ```
 3. Run on a phone with a SIM → onboarding → **Set as default SMS app**. Sideloaded APK and the option
    is greyed out? App info → ⋮ → *Allow restricted settings*.
@@ -53,14 +53,10 @@ cd sandbox && uvicorn server:app --port 8100
 After editing anything in `shared/`, run `python tools/export_rules.py` (CI fails if you forget).
 `tools/parity/run_parity.sh` proves the phone and the server score messages identically.
 
-## Deploy (Hostinger VPS)
+## Deployment
 
-1. VPS: Docker + Compose plugin, `mkdir -p /opt/scamshield/deploy`, copy `deploy/.env.example` → `/opt/scamshield/deploy/.env` and fill it in (`chmod 600`).
-2. Add `deploy/nginx/scamshield.conf` to the proxy that already serves ports 80/443; DNS `api.` and `admin.` → VPS (Cloudflare).
-3. GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (`VPS_SSH_PORT` if not 22), `SCAMSHIELD_API_KEY`, keystore secrets; variable `SCAMSHIELD_API_BASE_URL`.
-4. Push to `main` → tests → images to GHCR → `docker compose up -d` on the VPS → health check.
-   (Deploys run from GitHub, so campus Wi-Fi blocking port 22 doesn't matter.)
-5. Make the GHCR packages public, or run `docker login ghcr.io` once on the VPS.
+Not deployed yet — the project currently runs locally only. `deploy/` (docker-compose, `.env.example`,
+Nginx snippet) and the deploy workflow in `.github/` are prepared for a future VPS rollout but unused.
 
 ## Before switching `REPORT_MODE=live`
 
@@ -68,10 +64,10 @@ Every address in `backend/data/authorities.yaml` is unverified until checked aga
 nodal-officer list on cybercrime.gov.in; unverified addresses are never emailed in live mode.
 Same for `verified: false` SMS headers in `shared/brands.yaml` (check on smsheader.trai.gov.in).
 
-## Admin (demo)
+## Admin (local demo)
 
 ```bash
-curl -u admin:$ADMIN_PASSWORD https://admin.yourdomain.in/admin/stats
-curl -u admin:$ADMIN_PASSWORD -X PUT https://admin.yourdomain.in/admin/senders/+919123456780 \
+curl -u admin:$ADMIN_PASSWORD http://localhost:8000/admin/stats
+curl -u admin:$ADMIN_PASSWORD -X PUT http://localhost:8000/admin/senders/+919123456780 \
      -H 'content-type: application/json' -d '{"status":"blocked"}'
 ```
