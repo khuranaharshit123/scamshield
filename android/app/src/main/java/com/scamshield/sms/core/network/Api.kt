@@ -9,6 +9,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -147,9 +149,19 @@ class ApiClient(private val settings: SettingsStore) {
     val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
 
     private val auth = Interceptor { chain ->
-        // Token lookup is a tiny DataStore read; network calls already run off the main thread.
-        val token = runBlocking { settings.snapshot().deviceToken }
-        val req = chain.request().newBuilder()
+        // Settings lookup is a tiny DataStore read; network calls already run off the main thread.
+        val snap = runBlocking { settings.snapshot() }
+        val token = snap.deviceToken
+        // The server is user-configurable (Settings → Server), so the host is swapped per request.
+        val base = snap.serverUrl?.let(::normalizeServerUrl)?.toHttpUrlOrNull()
+            ?: BuildConfig.API_BASE_URL.toHttpUrl()
+        val orig = chain.request()
+        val url = orig.url.newBuilder()
+            .scheme(base.scheme).host(base.host).port(base.port)
+            .encodedPath(base.encodedPath.trimEnd('/') + orig.url.encodedPath)
+            .build()
+        val req = orig.newBuilder()
+            .url(url)
             .header("X-Api-Key", BuildConfig.API_KEY)
             .apply { if (token != null) header("X-Device-Token", token) }
             .build()
@@ -171,9 +183,18 @@ class ApiClient(private val settings: SettingsStore) {
         .build()
 
     val service: ScamShieldApi = Retrofit.Builder()
-        .baseUrl(BuildConfig.API_BASE_URL)
+        .baseUrl("http://placeholder.invalid/") // real host is applied by the interceptor above
         .client(http)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
         .create(ScamShieldApi::class.java)
+}
+
+/** "192.168.1.5:8000" → "http://192.168.1.5:8000/". Returns null if blank or not a valid URL. */
+fun normalizeServerUrl(input: String): String? {
+    val t = input.trim()
+    if (t.isEmpty()) return null
+    val withScheme = if (t.startsWith("http://", true) || t.startsWith("https://", true)) t else "http://$t"
+    val url = withScheme.toHttpUrlOrNull() ?: return null
+    return url.toString().let { if (it.endsWith("/")) it else "$it/" }
 }
