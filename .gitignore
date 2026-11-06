@@ -12,5 +12,13 @@ deploy/backups/
 *.log
 *.err
 *.db
-rite the password literally#
+# Local secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+**/local.properties
+*.pem
+*.p12
+*.key
+*.keystore
 *.apk
