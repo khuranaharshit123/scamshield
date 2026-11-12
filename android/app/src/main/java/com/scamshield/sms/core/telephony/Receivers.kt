@@ -96,6 +96,9 @@ class SmsStatusReceiver : BroadcastReceiver() {
         if (!intent.getBooleanExtra(EXTRA_LAST_PART, true)) return
         val repo = context.container.sms
         val code = resultCode
+        if (intent.action == ACTION_SENT && code != Activity.RESULT_OK) {
+            android.util.Log.e("SmsStatus", "send failed: resultCode=$code errorCode=${intent.getIntExtra("errorCode", -1)}")
+        }
         launchAsync {
             when (intent.action) {
                 ACTION_SENT -> if (code == Activity.RESULT_OK) {

@@ -40,7 +40,10 @@ class SmsSender(private val context: Context, private val repo: SmsRepository) {
      * Writes the message to the Outbox, sends it (multipart if needed) and lets
      * [SmsStatusReceiver] move it to Sent/Failed and record delivery.
      */
-    suspend fun send(address: String, body: String, subId: Int = defaultSubId()): Uri? = withContext(Dispatchers.IO) {
+    suspend fun send(address: String, body: String, requestedSubId: Int = defaultSubId()): Uri? = withContext(Dispatchers.IO) {
+        // The default SMS subscription can point at an empty SIM slot; fall back to an active SIM.
+        val active = activeSims().map { it.subscriptionId }
+        val subId = if (active.isEmpty() || requestedSubId in active) requestedSubId else active.first()
         val uri = repo.insertOutgoing(address, body, subId) ?: return@withContext null
         val manager = manager(subId)
         val parts = manager.divideMessage(body)
@@ -55,6 +58,7 @@ class SmsSender(private val context: Context, private val repo: SmsRepository) {
             if (parts.size == 1) manager.sendTextMessage(address, null, body, sent[0], delivered[0])
             else manager.sendMultipartTextMessage(address, null, parts, sent, delivered)
         } catch (e: Exception) {
+            android.util.Log.e("SmsSender", "send failed (sub=$subId)", e)
             repo.updateType(uri, android.provider.Telephony.Sms.MESSAGE_TYPE_FAILED)
         }
         uri

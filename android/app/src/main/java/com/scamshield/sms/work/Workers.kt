@@ -27,7 +27,9 @@ import com.scamshield.sms.core.network.ReportLogIn
 import com.scamshield.sms.core.network.ScanFeatures
 import com.scamshield.sms.core.network.ScanIn
 import com.scamshield.sms.core.network.ScanOut
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonObject
 import retrofit2.HttpException
@@ -93,7 +95,8 @@ class ScanWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, 
             }
             return Result.success()
         }
-        val local = com.scamshield.sms.core.security.DeepSeekScanner.scanWithDeepSeek(msg.address, msg.body, inContacts, localInitial)
+        // Offline result: local rules only. The AI check runs later, and only when the server answers.
+        val local = localInitial
         if (row == null) {
             val reasons = local.score.signals.map { Reason(it.code, it.text, it.points, it.detail) }
             row = ScanResultEntity(
@@ -134,10 +137,14 @@ class ScanWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, 
             return if (e.code() >= 500) Result.retry() else Result.success()
         }
 
+        // 3b. AI second opinion — only when the server is connected (local rules → AI → server DB → answer).
+        val ai = withContext(Dispatchers.IO) {
+            com.scamshield.sms.core.security.DeepSeekScanner.scanWithDeepSeek(msg.address, msg.body, inContacts, local)
+        }.aiVerdict
+
         val previous = row.verdict
         // The server doesn't know the sender is a friend; trust the AI's SAFE for saved contacts.
         // For others, cap the server's SCAM at the AI's milder verdict when the text has no links.
-        val ai = local.aiVerdict
         if (ai != null && ai != Verdict.SCAM && out.verdict == "SCAM" && (inContacts || local.urls.isEmpty())) {
             out = out.copy(verdict = ai.name, report = null)
         }
