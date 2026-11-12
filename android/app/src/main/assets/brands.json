@@ -51,12 +51,7 @@
    "domains": [
     "epfindia.gov.in"
    ],
-   "headers": [
-    {
-     "id": "EPFOHO",
-     "verified": true
-    }
-   ],
+   "headers": [],
    "name": "EPFO",
    "tokens": [
     "epfo",
@@ -125,12 +120,7 @@
     "incometax.gov.in",
     "incometaxindia.gov.in"
    ],
-   "headers": [
-    {
-     "id": "INCTAX",
-     "verified": true
-    }
-   ],
+   "headers": [],
    "name": "Income Tax Department",
    "tokens": [
     "incometax",
@@ -286,34 +276,6 @@
     "yono"
    ]
   },
-  "DIGILOCKER": {
-   "category": "government",
-   "domains": [
-    "digilocker.gov.in"
-   ],
-   "headers": [
-    {
-     "id": "DGLOCK",
-     "verified": false
-    }
-   ],
-   "name": "DigiLocker",
-   "tokens": [
-    "digilocker"
-   ]
-  },
-  "PMKISAN": {
-   "category": "government",
-   "domains": [
-    "pmkisan.gov.in"
-   ],
-   "headers": [],
-   "name": "PM-KISAN",
-   "tokens": [
-    "pmkisan",
-    "pm-kisan"
-   ]
-  },
   "UIDAI": {
    "category": "government",
    "domains": [
@@ -323,7 +285,7 @@
    "headers": [
     {
      "id": "UIDAI",
-     "verified": true
+     "verified": false
     }
    ],
    "name": "UIDAI (Aadhaar)",

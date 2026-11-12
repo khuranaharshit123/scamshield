@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from app.services.ruleset import RuleSet
 from app.services.signals import WEAK_CODES, Signal
 
-
 # A saved contact can't be a "scam", but real scam wording from one (hacked phone, spoofed number) is
 # still flagged: SUSPICIOUS with a deliberately low score. Mirrored in LocalScanner.kt.
 CONTACT_FLAG_MIN = 15        # strong (non-weak) points needed before a contact's message is flagged
