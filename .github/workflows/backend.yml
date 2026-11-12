@@ -5,6 +5,7 @@ on:
     paths: ["backend/**", "sandbox/**", "shared/**", "deploy/**", ".github/workflows/backend.yml"]
   pull_request:
     paths: ["backend/**", "sandbox/**", "shared/**"]
+  workflow_dispatch:   # deploy runs only when started by hand (not deployed yet)
 
 jobs:
   test:
@@ -25,7 +26,7 @@ jobs:
 
   deploy:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions: {contents: read, packages: write}
     env:
