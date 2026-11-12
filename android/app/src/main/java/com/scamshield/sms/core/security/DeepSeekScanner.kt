@@ -17,6 +17,16 @@ object DeepSeekScanner {
         .build()
 
     fun scanWithDeepSeek(sender: String, text: String, inContacts: Boolean, fallback: LocalScanResult): LocalScanResult {
+        val r = ask(sender, text, inContacts, fallback)
+        // For a saved contact the AI may soften or raise the verdict, but it never goes below the local
+        // flag nor above SUSPICIOUS (unless there's hard evidence such as a blocklist hit).
+        if (!inContacts || fallback.score.signals.any { it.absolute }) return r
+        val flagged = fallback.score.verdict == Verdict.SUSPICIOUS || r.score.verdict != Verdict.SAFE
+        val v = if (flagged) Verdict.SUSPICIOUS else Verdict.SAFE
+        return r.copy(score = r.score.copy(verdict = v))
+    }
+
+    private fun ask(sender: String, text: String, inContacts: Boolean, fallback: LocalScanResult): LocalScanResult {
         val apiKey = BuildConfig.DEEPSEEK_API_KEY
         if (apiKey.isEmpty()) return fallback
 

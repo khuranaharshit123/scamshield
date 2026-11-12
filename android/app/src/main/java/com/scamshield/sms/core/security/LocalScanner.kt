@@ -9,6 +9,11 @@ data class ScoreResult(
 )
 
 object Scorer {
+    // A saved contact can't be a "scam", but real scam wording from one (hacked phone, spoofed number) is
+    // still flagged: SUSPICIOUS with a deliberately low score. Mirrored in scorer.py.
+    const val CONTACT_FLAG_MIN = 15
+    private val CONTACT_SCORE_RANGE = 10..25
+
     fun dedupe(signals: List<Signal>): List<Signal> {
         val best = LinkedHashMap<String, Signal>()
         for (s in signals) {
@@ -35,8 +40,11 @@ object Scorer {
         val trust = setOf("OFFICIAL_DOMAIN", "GOV_HEADER")
         var negative = sigs.filter { it.points < 0 && it.code !in trust }.sumOf { it.points }
         if (strong == 0) negative += sigs.filter { it.code in trust }.sumOf { it.points }
+        val contactFlag = !absolute && strong >= CONTACT_FLAG_MIN && sigs.any { it.code == "IN_CONTACTS" }
         val total = if (absolute) 100 else (strong + weak + negative).coerceIn(0, 100)
+            .let { if (contactFlag) it.coerceIn(CONTACT_SCORE_RANGE) else it }
         val verdict = when {
+            contactFlag -> Verdict.SUSPICIOUS
             total >= rs.thresholdScam -> Verdict.SCAM
             total >= rs.thresholdSuspicious -> Verdict.SUSPICIOUS
             else -> Verdict.SAFE

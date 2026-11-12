@@ -7,6 +7,12 @@ from app.services.ruleset import RuleSet
 from app.services.signals import WEAK_CODES, Signal
 
 
+# A saved contact can't be a "scam", but real scam wording from one (hacked phone, spoofed number) is
+# still flagged: SUSPICIOUS with a deliberately low score. Mirrored in LocalScanner.kt.
+CONTACT_FLAG_MIN = 15        # strong (non-weak) points needed before a contact's message is flagged
+CONTACT_SCORE_RANGE = (10, 25)
+
+
 @dataclass
 class ScoreResult:
     score: int
@@ -53,7 +59,11 @@ def score(signals: list[Signal], rs: RuleSet) -> ScoreResult:
         negative += rs.pts("OFFICIAL_DOMAIN")
 
     total = 100 if absolute else max(0, min(100, strong + weak + negative))
-    if total >= rs.threshold_scam:
+    if not absolute and strong >= CONTACT_FLAG_MIN and any(s.code == "IN_CONTACTS" for s in sigs):
+        lo, hi = CONTACT_SCORE_RANGE
+        total = max(lo, min(hi, total))
+        verdict = "SUSPICIOUS"
+    elif total >= rs.threshold_scam:
         verdict = "SCAM"
     elif total >= rs.threshold_suspicious:
         verdict = "SUSPICIOUS"
